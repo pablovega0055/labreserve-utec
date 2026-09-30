@@ -1,0 +1,10 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+out/
+.vscode/
+.DS_Store
+# .env NO se ignora a proposito para que el examen corra directo.
+# Si el profe pide no subirlo, descomenta la linea de abajo:
+# .env

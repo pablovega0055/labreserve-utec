@@ -1,0 +1,184 @@
+{
+  "info": {
+    "name": "LabReserve UTEC",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "adminToken", "value": "" },
+    { "key": "techToken", "value": "" },
+    { "key": "studentToken", "value": "" },
+    { "key": "labId", "value": "1" },
+    { "key": "slotId", "value": "1" },
+    { "key": "reservationId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Ping",
+      "request": { "method": "GET", "url": "{{baseUrl}}/ping" }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Registrar estudiante",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"pablo.vega\",\n  \"email\": \"pablo.vega@utec.edu.pe\",\n  \"password\": \"pablovega2026\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login estudiante",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.collectionVariables.set('studentToken', pm.response.json().token);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"pablo.vega\",\n  \"password\": \"pablovega2026\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login admin",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.collectionVariables.set('adminToken', pm.response.json().token);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin12345\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login technician",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.collectionVariables.set('techToken', pm.response.json().token);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"technician\",\n  \"password\": \"tech12345\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Laboratories",
+      "item": [
+        {
+          "name": "Registrar laboratorio (ADMIN)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 201) pm.collectionVariables.set('labId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/laboratories",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"FabLab\",\n  \"location\": \"Pabellon A - 3er piso\",\n  \"managerId\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar laboratorios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": "{{baseUrl}}/laboratories?page=0&size=10"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Equipment slots",
+      "item": [
+        {
+          "name": "Publicar turno (TECHNICIAN/ADMIN)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 201) pm.collectionVariables.set('slotId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{techToken}}" }
+            ],
+            "url": "{{baseUrl}}/equipment-slots",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"laboratoryId\": {{labId}},\n  \"equipmentCode\": \"IMP3D-01\",\n  \"startTime\": \"2026-12-01T10:00:00\",\n  \"endTime\": \"2026-12-01T12:00:00\",\n  \"capacity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Buscar turnos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": "{{baseUrl}}/equipment-slots?page=0&size=10"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservations",
+      "item": [
+        {
+          "name": "Reservar equipo (STUDENT)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 201) pm.collectionVariables.set('reservationId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": "{{baseUrl}}/reservations",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotId\": {{slotId}},\n  \"purpose\": \"Imprimir prototipo del curso\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mis reservas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": "{{baseUrl}}/reservations/me"
+          }
+        },
+        {
+          "name": "Cancelar reserva",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": "{{baseUrl}}/reservations/{{reservationId}}/cancel"
+          }
+        }
+      ]
+    }
+  ]
+}
